@@ -589,6 +589,10 @@ document.getElementById('download-pdf-button').addEventListener('click', () => {
         doc.text('Recommendations not available!', 20, 210);
     }
 
+    // Add the footer
+    doc.setFontSize(10);
+    doc.text('Developed by Jay Rowley 2025', 20, doc.internal.pageSize.height - 10);
+    
     const pdfName = prompt("Enter a name for the PDF file:", "farm_health_report");
     if (pdfName) {
         doc.save(`${pdfName}.pdf`);
