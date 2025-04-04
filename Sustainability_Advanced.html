@@ -1,0 +1,916 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Environmental Sustainability Assessment Tool</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/css/bootstrap.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.13/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <style>
+body {
+    font-family: 'Roboto', sans-serif;
+    margin: 20px;
+    background-color: #f0f2f5;
+    color: #333;
+}
+.dark-mode {
+    background-color: #2E3B2D; /* Dark Green */
+    color: #f0f2f5;
+}
+.banner {
+    background-color: #006400; /* Dark Green */
+    color: white;
+    padding: 15px;
+    text-align: center;
+    margin-bottom: 20px;
+    border-radius: 8px;
+    animation: fadeInDown 1s;
+}
+.container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+.instructions {
+    margin-bottom: 20px;
+    padding: 15px;
+    background-color: #FFD700; /* Gold */
+    border: 1px solid #006400; /* Dark Green */
+    border-radius: 8px;
+    animation: fadeIn 1s;
+}
+.dark-mode .instructions {
+    background-color: #444;
+    border: 1px solid #fff;
+}
+.slider-group {
+    margin-bottom: 20px;
+}
+.slider-label {
+    margin-bottom: 5px;
+}
+.slider {
+    width: 100%;
+    margin: 10px 0;
+}
+.output {
+    font-weight: bold;
+    color: #006400; /* Dark Green */
+}
+.checkbox-group {
+    margin-bottom: 20px;
+}
+.footer {
+    text-align: center;
+    margin-top: 40px;
+    font-size: 14px;
+    color: #777;
+}
+#dark-mode-toggle {
+    margin: 20px auto;
+    display: block;
+    padding: 10px 20px;
+    font-size: 14px;
+    border: none;
+    border-radius: 5px;
+    background-color: #006400; /* Dark Green */
+    color: white;
+    cursor: pointer;
+    animation: fadeInUp 1s;
+    margin-bottom: 30px; /* Add this line to create space below the button */
+}
+#dark-mode-toggle:hover {
+    background-color: #228B22; /* Forest Green */
+}
+.info-button {
+    background-color: #006400; /* Dark Green */
+    color: white;
+    border: none;
+    border-radius: 50%;
+    padding: 5px;
+    margin-left: 10px;
+    cursor: pointer;
+    font-size: 12px;
+    width: 20px;
+    height: 20px;
+    line-height: 15px;
+    text-align: center;
+}
+.info-button:hover {
+    background-color: #228B22; /* Forest Green */
+}
+@media (max-width: 600px) {
+    .banner {
+        font-size: 18px;
+    }
+    .instructions, .checkbox-group, .slider-group {
+        font-size: 14px;
+    }
+    .slider-label, .output {
+        display: block;
+        margin-bottom: 10px;
+    }
+    canvas {
+        width: 100% !important;
+        height: auto !important;
+    }
+}
+
+/* Disclaimer Styles */
+.disclaimer {
+    margin-top: 20px;
+    padding: 15px;
+    background-color: #FFD700; /* Gold */
+    border: 1px solid #006400; /* Dark Green */
+    color: #555;
+}
+.dark-mode .disclaimer {
+    background-color: #333;
+    border: 1px solid #555;
+    color: #ddd;
+}
+.bold-label {
+    font-weight: bold; /* Added to make labels bold */
+}
+    </style>
+</head>
+<body>
+    <div class="banner animate__animated animate__fadeInDown">
+        <h1>Environmental Sustainability Assessment Tool</h1>
+    </div>
+    <div class="container">
+        <button id="dark-mode-toggle" class="animate__animated animate__fadeInUp">Toggle Dark Mode</button>
+        <div class="instructions animate__animated animate__fadeIn">
+            <h2>Instructions</h2>
+            <ol>
+                <li>Select the components you want to include in the assessment using the checkboxes below.</li>
+                <li>Hover over each parameter for a brief description (click the information icon on mobile).</li>
+                <li>Adjust the sliders to reflect the current state of each component (0 is worst, 5 is best).</li>
+                <li>The overall sustainability score will be calculated based on the selected components and their values.</li>
+                <li>A visual representation of the sustainability status is provided in the radar chart below.</li>
+                <li>Saved assessments will be displayed at the bottom of the page.</li>
+            </ol>
+        </div>
+        <div class="checkbox-group">
+            <label title="Monitors the use of water resources on the farm">
+                <input type="checkbox" class="component-checkbox" checked value="Water Usage"> Water Usage
+                <button class="info-button" data-description="Monitors the use of water resources on the farm">i</button>
+            </label><br>
+            <label title="Assesses the management of soil health and fertility">
+                <input type="checkbox" class="component-checkbox" checked value="Soil Health"> Soil Health
+                <button class="info-button" data-description="Assesses the management of soil health and fertility">i</button>
+            </label><br>
+            <label title="Evaluates the use of renewable energy sources">
+                <input type="checkbox" class="component-checkbox" checked value="Renewable Energy"> Renewable Energy
+                <button class="info-button" data-description="Evaluates the use of renewable energy sources">i</button>
+            </label><br>
+            <label title="Assesses the management of waste and recycling practices">
+                <input type="checkbox" class="component-checkbox" checked value="Waste Management"> Waste Management
+                <button class="info-button" data-description="Assesses the management of waste and recycling practices">i</button>
+            </label><br>
+            <label title="Monitors the impact of farming practices on biodiversity">
+                <input type="checkbox" class="component-checkbox" checked value="Biodiversity Impact"> Biodiversity Impact
+                <button class="info-button" data-description="Monitors the impact of farming practices on biodiversity">i</button>
+            </label><br>
+            <label title="Evaluates the use of sustainable farming practices">
+                <input type="checkbox" class="component-checkbox" checked value="Sustainable Practices"> Sustainable Practices
+                <button class="info-button" data-description="Evaluates the use of sustainable farming practices">i</button>
+            </label><br>
+            <label title="Assesses the overall environmental impact of the farm">
+                <input type="checkbox" class="component-checkbox" value="Environmental Impact"> Environmental Impact
+                <button class="info-button" data-description="Assesses the overall environmental impact of the farm">i</button>
+            </label><br>
+            <label title="Monitors the quality of water resources on the farm">
+                <input type="checkbox" class="component-checkbox" value="Water Quality"> Water Quality
+                <button class="info-button" data-description="Monitors the quality of water resources on the farm">i</button>
+            </label><br>
+            <label title="Assesses the maintenance of vehicles and equipment">
+                <input type="checkbox" class="component-checkbox" value="Vehicle and Equipment Maintenance"> Vehicle and Equipment Maintenance
+                <button class="info-button" data-description="Assesses the maintenance of vehicles and equipment">i</button>
+            </label><br>
+            <label title="Evaluates biosecurity protection measures">
+                <input type="checkbox" class="component-checkbox" value="Biosecurity Protection"> Biosecurity Protection
+                <button class="info-button" data-description="Evaluates biosecurity protection measures">i</button>
+            </label><br>
+            <label title="Monitors the impact on nearby native areas">
+                <input type="checkbox" class="component-checkbox" value="Nearby Native Areas"> Nearby Native Areas
+                <button class="info-button" data-description="Monitors the impact on nearby native areas">i</button>
+            </label><br>
+            <label title="Evaluates the efficiency of energy use on the farm">
+                <input type="checkbox" class="component-checkbox" value="Energy Efficiency"> Energy Efficiency
+                <button class="info-button" data-description="Evaluates the efficiency of energy use on the farm">i</button>
+            </label><br>
+            <label title="Monitors the use of chemical fertilizers and pesticides">
+                <input type="checkbox" class="component-checkbox" value="Chemical Use"> Chemical Use
+                <button class="info-button" data-description="Monitors the use of chemical fertilizers and pesticides">i</button>
+            </label><br>
+            <label title="Assesses the welfare and living conditions of farm animals">
+                <input type="checkbox" class="component-checkbox" value="Animal Welfare"> Animal Welfare
+                <button class="info-button" data-description="Assesses the welfare and living conditions of farm animals">i</button>
+            </label><br>
+            <label title="Monitors the application of fertilizers on the farm">
+                <input type="checkbox" class="component-checkbox" value="Fertilizer Application"> Fertilizer Application
+                <button class="info-button" data-description="Monitors the application of fertilizers on the farm">i</button>
+            </label><br>
+            <label title="Assesses the exclusion of livestock from riparian areas">
+                <input type="checkbox" class="component-checkbox" value="Stock Exclusion to Riparian Areas"> Stock Exclusion to Riparian Areas
+                <button class="info-button" data-description="Assesses the exclusion of livestock from riparian areas">i</button>
+            </label><br>
+            <label title="Evaluates the people and culture practices on the farm">
+                <input type="checkbox" class="component-checkbox" value="People and Culture"> People and Culture
+                <button class="info-button" data-description="Evaluates the people and culture practices on the farm">i</button>
+            </label><br>
+            <label title="Monitors the percentage of natural areas on the farm">
+                <input type="checkbox" class="component-checkbox" value="Percentage of Natural Areas"> Percentage of Natural Areas
+                <button class="info-button" data-description="Monitors the percentage of natural areas on the farm">i</button>
+            </label>
+        </div>
+        <div id="sliders-container"></div>
+        <canvas id="radarChart"></canvas>
+        <div>
+            <p><strong>Overall Sustainability Score:</strong> <span id="overall-score">0</span>%</p>
+            <h3>Recommendations</h3>
+            <p id="recommendations"></p>
+        </div>
+        <div id="tooltip" class="tooltip"></div>
+        <div id="download-buttons" class="d-flex justify-content-between">
+            <button id="download-pdf-button" class="btn btn-primary mt-3">Download PDF</button>
+            <button id="save-assessment-button" class="btn btn-primary mt-3">Save Assessment</button>
+        </div>
+        <div id="assessments-container" class="container mt-4">
+            <h3>Past Assessments</h3>
+            <button id="clear-all-assessments-button" class="btn btn-danger mb-3">Clear All Assessments</button>
+        </div>
+    </div>
+    <div class="disclaimer">
+        <h6>Disclaimer</h6>
+        <p>This Environmental Sustainability Assessment Tool is designed for educational and informational purposes only. The assessments and recommendations provided are based on the input data and should not be considered as professional environmental advice. Users are encouraged to consult with environmental experts for detailed analysis and decision-making. The developers are not liable for any actions taken based on the results generated by this tool.</p>
+    </div>
+    <div class="footer">
+        Developed by Jay Rowley 2025
+    </div>
+    <script>
+const components = [
+    {
+        name: "Water Usage",
+        value: 3,
+        description: "Monitors the use of water resources on the farm",
+        criteria: [
+            "Very Poor: >1000 liters per hectare per day",
+            "Poor: 800-1000 liters per hectare per day",
+            "Fair: 600-800 liters per hectare per day",
+            "Good: 400-600 liters per hectare per day",
+            "Very Good: 200-400 liters per hectare per day",
+            "Excellent: <200 liters per hectare per day"
+        ]
+    },
+    {
+        name: "Soil Health",
+        value: 3,
+        description: "Assesses the management of soil health and fertility",
+        criteria: [
+            "Very Poor: Soil organic matter <1%",
+            "Poor: Soil organic matter 1-2%",
+            "Fair: Soil organic matter 2-3%",
+            "Good: Soil organic matter 3-4%",
+            "Very Good: Soil organic matter 4-5%",
+            "Excellent: Soil organic matter >5%"
+        ]
+    },
+    {
+        name: "Renewable Energy",
+        value: 3,
+        description: "Evaluates the use of renewable energy sources",
+        criteria: [
+            "Very Poor: 0% renewable energy",
+            "Poor: 1-20% renewable energy",
+            "Fair: 21-40% renewable energy",
+            "Good: 41-60% renewable energy",
+            "Very Good: 61-80% renewable energy",
+            "Excellent: 81-100% renewable energy"
+        ]
+    },
+    {
+        name: "Waste Management",
+        value: 3,
+        description: "Assesses the management of waste and recycling practices",
+        criteria: [
+            "Very Poor: <10% waste recycled",
+            "Poor: 10-20% waste recycled",
+            "Fair: 21-40% waste recycled",
+            "Good: 41-60% waste recycled",
+            "Very Good: 61-80% waste recycled",
+            "Excellent: 81-100% waste recycled"
+        ]
+    },
+    {
+        name: "Biodiversity Impact",
+        value: 3,
+        description: "Monitors the impact of farming practices on biodiversity",
+        criteria: [
+            "Very Poor: >50% reduction in species diversity",
+            "Poor: 40-50% reduction in species diversity",
+            "Fair: 30-40% reduction in species diversity",
+            "Good: 20-30% reduction in species diversity",
+            "Very Good: 10-20% reduction in species diversity",
+            "Excellent: <10% reduction in species diversity"
+        ]
+    },
+    {
+        name: "Sustainable Practices",
+        value: 3,
+        description: "Evaluates the use of sustainable farming practices",
+        criteria: [
+            "Very Poor: <10% of practices are sustainable",
+            "Poor: 10-20% of practices are sustainable",
+            "Fair: 21-40% of practices are sustainable",
+            "Good: 41-60% of practices are sustainable",
+            "Very Good: 61-80% of practices are sustainable",
+            "Excellent: 81-100% of practices are sustainable"
+        ]
+    },
+    {
+        name: "Environmental Impact",
+        value: 3,
+        description: "Assesses the overall environmental impact of the farm",
+        criteria: [
+            "Very Poor: >50% negative impact",
+            "Poor: 40-50% negative impact",
+            "Fair: 30-40% negative impact",
+            "Good: 20-30% negative impact",
+            "Very Good: 10-20% negative impact",
+            "Excellent: <10% negative impact"
+        ]
+    },
+    {
+        name: "Water Quality",
+        value: 3,
+        description: "Monitors the quality of water resources on the farm",
+        criteria: [
+            "Very Poor: >50 mg/L nitrates",
+            "Poor: 40-50 mg/L nitrates",
+            "Fair: 30-40 mg/L nitrates",
+            "Good: 20-30 mg/L nitrates",
+            "Very Good: 10-20 mg/L nitrates",
+            "Excellent: <10 mg/L nitrates"
+        ]
+    },
+    {
+        name: "Vehicle and Equipment Maintenance",
+        value: 3,
+        description: "Assesses the maintenance of vehicles and equipment",
+        criteria: [
+            "Very Poor: >50% downtime",
+            "Poor: 40-50% downtime",
+            "Fair: 30-40% downtime",
+            "Good: 20-30% downtime",
+            "Very Good: 10-20% downtime",
+            "Excellent: <10% downtime"
+        ]
+    },
+    {
+        name: "Biosecurity Protection",
+        value: 3,
+        description: "Evaluates biosecurity protection measures",
+        criteria: [
+            "Very Poor: >50% risk of breaches",
+            "Poor: 40-50% risk of breaches",
+            "Fair: 30-40% risk of breaches",
+            "Good: 20-30% risk of breaches",
+            "Very Good: 10-20% risk of breaches",
+            "Excellent: <10% risk of breaches"
+        ]
+    },
+    {
+        name: "Nearby Native Areas",
+        value: 3,
+        description: "Monitors the impact on nearby native areas",
+        criteria: [
+            "Very Poor: >50% negative impact",
+            "Poor: 40-50% negative impact",
+            "Fair: 30-40% negative impact",
+            "Good: 20-30% negative impact",
+            "Very Good: 10-20% negative impact",
+            "Excellent: <10% negative impact"
+        ]
+    },
+    {
+        name: "Energy Efficiency",
+        value: 3,
+        description: "Evaluates the efficiency of energy use on the farm",
+        criteria: [
+            "Very Poor: >50% energy waste",
+            "Poor: 40-50% energy waste",
+            "Fair: 30-40% energy waste",
+            "Good: 20-30% energy waste",
+            "Very Good: 10-20% energy waste",
+            "Excellent: <10% energy waste"
+        ]
+    },
+    {
+        name: "Chemical Use",
+        value: 3,
+        description: "Monitors the use of chemical fertilizers and pesticides",
+        criteria: [
+            "Very Poor: >50 kg/ha chemical use",
+            "Poor: 40-50 kg/ha chemical use",
+            "Fair: 30-40 kg/ha chemical use",
+            "Good: 20-30 kg/ha chemical use",
+            "Very Good: 10-20 kg/ha chemical use",
+            "Excellent: <10 kg/ha chemical use"
+        ]
+    },
+    {
+        name: "Animal Welfare",
+        value: 3,
+        description: "Assesses the welfare and living conditions of farm animals",
+        criteria: [
+            "Very Poor: <10% compliance with welfare standards",
+            "Poor: 10-20% compliance with welfare standards",
+            "Fair: 21-40% compliance with welfare standards",
+            "Good: 41-60% compliance with welfare standards",
+            "Very Good: 61-80% compliance with welfare standards",
+            "Excellent: 81-100% compliance with welfare standards"
+        ]
+    },
+    {
+        name: "Fertilizer Application",
+        value: 3,
+        description: "Monitors the application of fertilizers on the farm",
+        criteria: [
+            "Very Poor: >200 kg/ha",
+            "Poor: 150-200 kg/ha",
+            "Fair: 100-150 kg/ha",
+            "Good: 50-100 kg/ha",
+            "Very Good: 20-50 kg/ha",
+            "Excellent: <20 kg/ha"
+        ]
+    },
+    {
+        name: "Stock Exclusion to Riparian Areas",
+        value: 3,
+        description: "Assesses the exclusion of livestock from riparian areas",
+        criteria: [
+            "Very Poor: 0% exclusion",
+            "Poor: 1-20% exclusion",
+            "Fair: 21-40% exclusion",
+            "Good: 41-60% exclusion",
+            "Very Good: 61-80% exclusion",
+            "Excellent: 81-100% exclusion"
+        ]
+    },
+    {
+        name: "People and Culture",
+        value: 3,
+        description: "Evaluates the people and culture practices on the farm",
+        criteria: [
+            "Very Poor: <10% employee satisfaction",
+            "Poor: 10-20% employee satisfaction",
+            "Fair: 21-40% employee satisfaction",
+            "Good: 41-60% employee satisfaction",
+            "Very Good: 61-80% employee satisfaction",
+            "Excellent: 81-100% employee satisfaction"
+        ]
+    },
+    {
+        name: "Percentage of Natural Areas",
+        value: 3,
+        description: "Monitors the percentage of natural areas on the farm",
+        criteria: [
+            "Very Poor: <10% natural areas",
+            "Poor: 10-20% natural areas",
+            "Fair: 21-40% natural areas",
+            "Good: 41-60% natural areas",
+            "Very Good: 61-80% natural areas",
+            "Excellent: 81-100% natural areas"
+        ]
+    }
+];
+
+const slidersContainer = document.getElementById('sliders-container');
+const radarChartCanvas = document.getElementById('radarChart');
+const overallScoreElement = document.getElementById('overall-score');
+const recommendationsElement = document.getElementById('recommendations');
+const componentCheckboxes = document.querySelectorAll('.component-checkbox');
+const infoButtons = document.querySelectorAll('.info-button');
+
+let activeComponents = components.slice(0, 6);
+
+function renderSliders() {
+    slidersContainer.innerHTML = '';
+    activeComponents.forEach((component, index) => {
+        const sliderWrapper = document.createElement('div');
+        sliderWrapper.className = 'slider-wrapper animate__animated animate__fadeInUp';
+
+        const label = document.createElement('label');
+        label.textContent = component.name;
+        label.className = 'bold-label'; // Add this line to make the label bold
+        sliderWrapper.appendChild(label);
+
+        const slider = document.createElement('input');
+        slider.type = 'range';
+        slider.min = 0;
+        slider.max = 5;
+        slider.value = component.value;
+        slider.dataset.index = index;
+        slider.className = 'slider';
+        slider.addEventListener('input', (e) => {
+            const newValue = parseInt(e.target.value, 10);
+            activeComponents[index].value = newValue;
+            updateChart();
+            criteriaDisplay.textContent = component.criteria[newValue];
+        });
+        sliderWrapper.appendChild(slider);
+
+        const criteriaDisplay = document.createElement('div');
+        criteriaDisplay.className = 'criteria-display';
+        criteriaDisplay.textContent = component.criteria[component.value];
+        criteriaDisplay.style.marginBottom = '1.5em';
+        sliderWrapper.appendChild(criteriaDisplay);
+
+        slidersContainer.appendChild(sliderWrapper);
+    });
+}
+
+function calculateOverallScore() {
+    const total = activeComponents.reduce((sum, comp) => sum + comp.value, 0);
+    const maxTotal = activeComponents.length * 5;
+    return Math.round((total / maxTotal) * 100);
+}
+
+async function getAIRecommendations(components) {
+    try {
+        const response = await axios.post('https://api.example.com/get-recommendations', { components });
+        return response.data.recommendations;
+    } catch (error) {
+        console.error('Error fetching AI recommendations:', error);
+        return [];
+    }
+}
+
+async function generateRecommendations() {
+    let recommendations = '';
+    const aiRecommendations = await getAIRecommendations(activeComponents);
+
+    activeComponents.forEach(component => {
+        if (component.value <= 3) {
+            const aiRecommendation = aiRecommendations.find(rec => rec.component === component.name);
+            if (aiRecommendation) {
+                recommendations += `<li>${aiRecommendation.recommendation}</li>`;
+            } else {
+                switch (component.name) {
+                    case "Water Usage":
+                        recommendations += `<li>Improve ${component.name} by implementing efficient irrigation systems and water-saving techniques.</li>`;
+                        break;
+                    case "Soil Health":
+                        recommendations += `<li>Enhance ${component.name} by using organic fertilizers and practicing crop rotation.</li>`;
+                        break;
+                    case "Renewable Energy":
+                        recommendations += `<li>Increase ${component.name} by installing solar panels and wind turbines.</li>`;
+                        break;
+                    case "Waste Management":
+                        recommendations += `<li>Strengthen ${component.name} by implementing comprehensive recycling and composting programs.</li>`;
+                        break;
+                    case "Biodiversity Impact":
+                        recommendations += `<li>Reduce ${component.name} by creating habitats for wildlife and planting native species.</li>`;
+                        break;
+                    case "Sustainable Practices":
+                        recommendations += `<li>Adopt ${component.name} by using no-till farming and reducing chemical inputs.</li>`;
+                        break;
+                    case "Environmental Impact":
+                        recommendations += `<li>Minimize ${component.name} by reducing greenhouse gas emissions and conserving natural resources.</li>`;
+                        break;
+                    case "Water Quality":
+                        recommendations += `<li>Improve ${component.name} by reducing runoff and using buffer strips.</li>`;
+                        break;
+                    case "Vehicle and Equipment Maintenance":
+                        recommendations += `<li>Enhance ${component.name} by scheduling regular maintenance and using energy-efficient equipment.</li>`;
+                        break;
+                    case "Biosecurity Protection":
+                        recommendations += `<li>Strengthen ${component.name} by implementing strict biosecurity protocols and monitoring systems.</li>`;
+                        break;
+                    case "Nearby Native Areas":
+                        recommendations += `<li>Protect ${component.name} by creating buffer zones and minimizing land disturbance.</li>`;
+                        break;
+                    case "Energy Efficiency":
+                        recommendations += `<li>Increase ${component.name} by using energy-efficient technologies and practices.</li>`;
+                        break;
+                    case "Chemical Use":
+                        recommendations += `<li>Reduce ${component.name} by using organic alternatives and integrated pest management.</li>`;
+                        break;
+                    case "Animal Welfare":
+                        recommendations += `<li>Improve ${component.name} by providing adequate space, nutrition, and veterinary care.</li>`;
+                        break;
+                    case "Fertilizer Application":
+                        recommendations += `<li>Optimize ${component.name} by using precision agriculture techniques and soil testing.</li>`;
+                        break;
+                    case "Stock Exclusion to Riparian Areas":
+                        recommendations += `<li>Enhance ${component.name} by installing fencing and providing alternative water sources for livestock.</li>`;
+                        break;
+                    case "People and Culture":
+                        recommendations += `<li>Improve ${component.name} by fostering a positive work environment and providing training opportunities.</li>`;
+                        break;
+                    case "Percentage of Natural Areas":
+                        recommendations += `<li>Increase ${component.name} by setting aside land for conservation and planting native vegetation.</li>`;
+                        break;
+                    default:
+                        recommendations += `<li>Improve ${component.name} by focusing on relevant strategies.</li>`;
+                        break;
+                }
+            }
+        }
+    });
+
+    recommendationsElement.innerHTML = recommendations ? `<ul>${recommendations}</ul>` : 'All components are performing well - Implement monitoring program.';
+}
+
+function getChartColors(isDarkMode) {
+    return {
+        gridColor: isDarkMode ? 'rgba(255, 255, 255, 0.5)' : 'rgba(0, 0, 0, 0.1)',
+        angleLineColor: isDarkMode ? 'rgba(255, 255, 255, 0.5)' : 'rgba(0, 0, 0, 0.1)',
+        pointLabelColor: isDarkMode ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)',
+        borderColor: isDarkMode ? 'rgba(255, 255, 255, 1)' : 'rgba(75, 192, 192, 1)',
+        backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.5)' : 'rgba(75, 192, 192, 0.2)'
+    };
+}
+
+const radarChart = new Chart(radarChartCanvas, {
+    type: 'radar',
+    data: {
+        labels: activeComponents.map(comp => comp.name),
+        datasets: [{
+            label: 'Sustainability Status',
+            data: activeComponents.map(comp => comp.value),
+            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+            borderColor: 'rgba(75, 192, 192, 1)',
+            borderWidth: 2
+        }]
+    },
+options: {
+    scales: {
+        r: {
+            min: 0,
+            max: 5,
+            ticks: {
+                stepSize: 1
+            },
+            grid: {
+                circular: true, // Add this line to make the grid circular
+                color: 'rgba(0, 0, 0, 0.1)'
+            },
+            angleLines: {
+                color: 'rgba(0, 0, 0, 0.1)'
+            },
+            pointLabels: {
+                color: 'rgba(0, 0, 0, 1)'
+            }
+        }
+    },
+    elements: {
+        line: {
+            tension: 0.4 // Add this line to curve the lines
+        }
+    },
+    plugins: {
+        tooltip: {
+            callbacks: {
+                label: function(context) {
+                    const component = components.find(comp => comp.name === context.label);
+                    return `${context.label}: ${context.raw} - ${component.description}`;
+                }
+            }
+        }
+    }
+}
+});
+
+function updateChart() {
+    radarChart.data.labels = activeComponents.map(comp => comp.name);
+    radarChart.data.datasets[0].data = activeComponents.map(comp => comp.value);
+    radarChart.update();
+
+    const overallScore = calculateOverallScore();
+    overallScoreElement.textContent = overallScore;
+    generateRecommendations();
+}
+
+function updateChartColors(isDarkMode) {
+    const chartColors = getChartColors(isDarkMode);
+    radarChart.options.scales.r.grid.color = chartColors.gridColor;
+    radarChart.options.scales.r.angleLines.color = chartColors.angleLineColor;
+    radarChart.options.scales.r.pointLabels.color = chartColors.pointLabelColor;
+    radarChart.data.datasets[0].borderColor = chartColors.borderColor;
+    radarChart.data.datasets[0].backgroundColor = chartColors.backgroundColor;
+    radarChart.update();
+}
+
+document.getElementById('dark-mode-toggle').addEventListener('click', () => {
+    document.body.classList.toggle('dark-mode');
+    const isDarkMode = document.body.classList.contains('dark-mode');
+    updateChartColors(isDarkMode);
+});
+
+componentCheckboxes.forEach(checkbox => {
+    checkbox.addEventListener('change', () => {
+        activeComponents = components.filter((_, i) => componentCheckboxes[i].checked);
+        renderSliders();
+        updateChart();
+    });
+});
+
+infoButtons.forEach(button => {
+    button.addEventListener('click', (e) => {
+        const description = e.target.dataset.description;
+        alert(description);
+    });
+});
+
+renderSliders();
+updateChart();
+
+document.getElementById('download-pdf-button').addEventListener('click', () => {
+    const { jsPDF } = window.jspdf;
+    const isDarkMode = document.body.classList.contains('dark-mode');
+    const chartColors = getChartColors(isDarkMode);
+
+    const radarChartCanvas = document.getElementById('radarChart');
+    const recommendationsElement = document.getElementById('recommendations');
+
+    const doc = new jsPDF();
+    doc.setFontSize(18);
+    doc.text('Environmental Sustainability Report', 20, 20);
+
+    const currentDate = new Date();
+    const dateString = `Date: ${currentDate.toLocaleDateString()} Time: ${currentDate.toLocaleTimeString()}`;
+    doc.setFontSize(12);
+    doc.text(dateString, 20, 30);
+    
+    // Add the overall sustainability score
+    const overallScore = calculateOverallScore();
+    doc.setFontSize(14);
+    doc.text(`Overall Sustainability Score: ${overallScore}%`, 20, 40);
+
+    if (radarChartCanvas) {
+        const chartImage = radarChartCanvas.toDataURL('image/png');
+        doc.addImage(chartImage, 'PNG', 20, 40, 160, 160);
+    } else {
+        doc.text('Radar chart is missing!', 20, 40);
+    }
+
+    doc.setFontSize(12);
+    doc.text('Recommendations:', 20, 200);
+
+    if (recommendationsElement) {
+        const recommendations = recommendationsElement.innerHTML;
+        const recommendationsList = recommendations.match(/<li>(.*?)<\/li>/g)?.map(item => item.replace(/<\/?li>/g, '')) || [];
+        const formattedRecommendations = recommendationsList.length > 0 ? recommendationsList.map(item => [`• ${item}`]) : [['All components are performing well - Implement or continue with a monitoring program.']];
+        doc.autoTable({
+            startY: 210,
+            body: formattedRecommendations,
+            theme: 'plain',
+            styles: { cellPadding: 1, fontSize: 12, overflow: 'linebreak', lineHeight: 1.2 },
+            columnStyles: { 0: { cellWidth: 170 } }
+        });
+    } else {
+        doc.text('Recommendations not available!', 20, 210);
+    }
+
+    // Add the footer
+    doc.setFontSize(10);
+    doc.text('Developed by Jay Rowley 2025', 20, doc.internal.pageSize.height - 10);
+
+    // Prompt the user to enter a name for the PDF
+    const pdfName = prompt("Enter a name for the PDF file:", "sustainability_report");
+    if (pdfName) {
+        doc.save(`${pdfName}.pdf`);
+    }
+});
+
+function saveAssessment() {
+    const assessmentName = prompt("Enter a name for this assessment:", "New Assessment");
+    if (!assessmentName) return;
+
+    const assessment = {
+        name: assessmentName,
+        date: new Date().toISOString(),
+        components: activeComponents.map(comp => ({
+            name: comp.name,
+            value: comp.value,
+            description: comp.criteria[comp.value]
+        })),
+        recommendations: recommendationsElement.innerHTML
+    };
+
+    let assessments = JSON.parse(localStorage.getItem('assessments')) || [];
+    assessments.push(assessment);
+    localStorage.setItem('assessments', JSON.stringify(assessments));
+    alert('Assessment saved successfully!');
+
+    // Auto-update the assessments display
+    displayAssessments();
+}
+
+function loadAssessments() {
+    const assessments = JSON.parse(localStorage.getItem('assessments')) || [];
+    return assessments;
+}
+
+function displayAssessments() {
+    const assessments = loadAssessments();
+    const assessmentsContainer = document.getElementById('assessments-container');
+    assessmentsContainer.innerHTML = '';
+
+    assessments.forEach((assessment, index) => {
+        const assessmentDiv = document.createElement('div');
+        assessmentDiv.className = 'assessment';
+
+        const date = new Date(assessment.date).toLocaleString();
+        const dateElement = document.createElement('p');
+        dateElement.textContent = `Date: ${date}`;
+        assessmentDiv.appendChild(dateElement);
+
+        const nameElement = document.createElement('p');
+        nameElement.textContent = `Name: ${assessment.name}`;
+        assessmentDiv.appendChild(nameElement);
+
+        const componentsList = document.createElement('ul');
+        assessment.components.forEach(component => {
+            const componentItem = document.createElement('li');
+            componentItem.innerHTML = `${component.name}: ${component.value} - <em>${component.description}</em>`;
+            componentsList.appendChild(componentItem);
+        });
+        assessmentDiv.appendChild(componentsList);
+
+        const recommendationsElement = document.createElement('div');
+        recommendationsElement.innerHTML = `<strong>Recommendations:</strong> ${assessment.recommendations}`;
+        assessmentDiv.appendChild(recommendationsElement);
+
+        const buttonGroup = document.createElement('div');
+        buttonGroup.className = 'btn-group';
+
+        const deleteButton = document.createElement('button');
+        deleteButton.textContent = 'Delete';
+        deleteButton.className = 'btn btn-danger btn-sm';
+        deleteButton.addEventListener('click', () => {
+            if (confirm('Are you sure you want to delete this assessment?')) {
+                deleteAssessment(index);
+            }
+        });
+        buttonGroup.appendChild(deleteButton);
+
+        const exportButton = document.createElement('button');
+        exportButton.textContent = 'Export';
+        exportButton.className = 'btn btn-secondary btn-sm';
+        exportButton.addEventListener('click', () => {
+            if (confirm('Are you sure you want to export this assessment?')) {
+                exportSingleAssessment(index);
+            }
+        });
+        buttonGroup.appendChild(exportButton);
+
+        assessmentDiv.appendChild(buttonGroup);
+        assessmentsContainer.appendChild(assessmentDiv);
+    });
+}
+
+function deleteAssessment(index) {
+    let assessments = loadAssessments();
+    assessments.splice(index, 1);
+    localStorage.setItem('assessments', JSON.stringify(assessments));
+    displayAssessments();
+}
+
+function clearAllAssessments() {
+    if (confirm('Are you sure you want to clear all assessments?')) {
+        localStorage.removeItem('assessments');
+        displayAssessments();
+    }
+}
+
+function exportSingleAssessment(index) {
+    const assessments = loadAssessments();
+    const assessment = assessments[index];
+    const csvContent = "data:text/csv;charset=utf-8," + 
+        "Name,Date,Component,Value\n" +
+        assessment.components.map(comp => `${assessment.name},${new Date(assessment.date).toLocaleString()},${comp.name},${comp.value}`).join("\n");
+    
+    const downloadAnchorNode = document.createElement('a');
+    downloadAnchorNode.setAttribute("href", encodeURI(csvContent));
+    downloadAnchorNode.setAttribute("download", `${assessment.name}.csv`);
+    document.body.appendChild(downloadAnchorNode);
+    downloadAnchorNode.click();
+    downloadAnchorNode.remove();
+}
+document.getElementById('save-assessment-button').addEventListener('click', saveAssessment);
+
+document.getElementById('clear-all-assessments-button').addEventListener('click', clearAllAssessments);
+
+document.addEventListener('DOMContentLoaded', displayAssessments);
+</script>
+</body>
+</html>
