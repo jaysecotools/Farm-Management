@@ -38,7 +38,7 @@ header {
     padding: 20px;
     border-radius: 8px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    margin-bottom: 20px; /* Adds spacing below the header */
+    margin-bottom: 20px !important;/* Adds spacing below the header */
 }
 
 header h1 {
